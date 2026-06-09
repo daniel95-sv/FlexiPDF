@@ -11,6 +11,9 @@ export function ScanPDF() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
     // Cleanup stream on unmount
     return () => {
       if (stream) {
@@ -24,9 +27,6 @@ export function ScanPDF() {
       setError(null);
       const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       setStream(mediaStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
     } catch (err) {
       console.error(err);
       setError('No se pudo acceder a la cámara. Verifica los permisos de tu navegador.');
