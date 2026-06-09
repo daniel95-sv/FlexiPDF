@@ -49,45 +49,52 @@ export function PageThumbnail({ page, mode, onRotate, onToggleSelect, index }: P
       {...attributes} 
       {...(mode === 'organize' ? listeners : {})}
       onClick={handleInteract}
-      className={`relative flex flex-col items-center bg-white rounded-lg shadow-sm border-2 transition-all p-2 cursor-pointer select-none
-        ${isDragging ? 'shadow-xl border-blue-500 scale-105' : 'border-transparent hover:shadow-md hover:border-gray-200'}
-        ${page.selected && mode === 'remove' ? 'border-red-500 opacity-75' : ''}
-        ${page.selected && mode === 'extract' ? 'border-blue-500 ring-2 ring-blue-200' : ''}
-      `}
       style={{
         ...style,
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        backgroundColor: '#ffffff',
+        borderRadius: '0.5rem',
+        padding: '0.5rem',
+        cursor: mode === 'organize' ? 'grab' : 'pointer',
+        userSelect: 'none',
+        transition: 'all 0.2s',
+        boxShadow: isDragging ? '0 20px 25px -5px rgba(0, 0, 0, 0.1)' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        border: isDragging ? '2px solid #3b82f6' : (page.selected && mode === 'remove' ? '2px solid #ef4444' : (page.selected && mode === 'extract' ? '2px solid #3b82f6' : '2px solid transparent')),
+        transform: isDragging ? `${style.transform} scale(1.05)` : style.transform,
+        opacity: isDragging ? 0.8 : (page.selected && mode === 'remove' ? 0.75 : 1),
         width: '140px',
         height: '200px',
-        cursor: mode === 'organize' ? 'grab' : 'pointer'
       }}
     >
       {/* Page Number Badge */}
-      <div className="absolute -top-3 -left-3 w-8 h-8 bg-gray-800 text-white rounded-full flex items-center justify-center font-bold text-sm shadow-md z-10">
+      <div style={{ position: 'absolute', top: '-0.75rem', left: '-0.75rem', width: '2rem', height: '2rem', backgroundColor: '#1f2937', color: '#ffffff', borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '0.875rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', zIndex: 10 }}>
         {index + 1}
       </div>
 
       {/* Mode-specific overlays */}
       {mode === 'remove' && page.selected && (
-        <div className="absolute inset-0 bg-red-500/20 rounded-lg flex items-center justify-center z-10">
-          <Trash2 className="w-12 h-12 text-red-600 drop-shadow-md" strokeWidth={2.5} />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(239, 68, 68, 0.2)', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10 }}>
+          <Trash2 style={{ width: '3rem', height: '3rem', color: '#dc2626', filter: 'drop-shadow(0 4px 3px rgba(0,0,0,0.07))' }} strokeWidth={2.5} />
         </div>
       )}
 
       {mode === 'extract' && page.selected && (
-        <div className="absolute inset-0 bg-blue-500/10 rounded-lg flex border-2 border-blue-500 z-10 pointer-events-none">
-          <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-             <CheckCircle2 className="w-5 h-5" />
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(59, 130, 246, 0.1)', borderRadius: '0.5rem', display: 'flex', border: '2px solid #3b82f6', zIndex: 10, pointerEvents: 'none' }}>
+          <div style={{ position: 'absolute', top: '0.5rem', right: '0.5rem', backgroundColor: '#3b82f6', color: '#ffffff', borderRadius: '9999px', padding: '0.25rem' }}>
+             <CheckCircle2 style={{ width: '1.25rem', height: '1.25rem' }} />
           </div>
         </div>
       )}
 
       {/* Thumbnail Container */}
-      <div className="flex-1 w-full flex items-center justify-center overflow-hidden bg-gray-50 rounded border border-gray-100">
+      <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: '#f9fafb', borderRadius: '0.25rem', border: '1px solid #f3f4f6' }}>
         <img 
           src={page.dataUrl} 
           alt={`Page ${page.originalIndex + 1}`} 
-          className="max-w-full max-h-full object-contain pointer-events-none transition-transform duration-300"
-          style={{ transform: `rotate(${page.rotation}deg)` }}
+          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', pointerEvents: 'none', transition: 'transform 0.3s', transform: `rotate(${page.rotation}deg)` }}
         />
       </div>
 
@@ -95,15 +102,14 @@ export function PageThumbnail({ page, mode, onRotate, onToggleSelect, index }: P
       {mode === 'rotate' && (
         <button 
           onClick={handleRotate}
-          className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-md hover:bg-gray-50 hover:text-blue-600 transition-colors z-20 border border-gray-200"
+          style={{ position: 'absolute', bottom: '0.5rem', right: '0.5rem', backgroundColor: '#ffffff', borderRadius: '9999px', padding: '0.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb', zIndex: 20, cursor: 'pointer' }}
           title="Rotate 90°"
         >
-          <RotateCw className="w-5 h-5" />
+          <RotateCw style={{ width: '1.25rem', height: '1.25rem' }} />
         </button>
       )}
 
-      {/* Info footer */}
-      <div className="mt-2 text-xs text-gray-400 font-medium w-full text-center truncate">
+      <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500, width: '100%', textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         Orig: {page.originalIndex + 1}
       </div>
     </div>

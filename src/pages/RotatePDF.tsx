@@ -79,19 +79,19 @@ export function RotatePDF() {
           isProcessing={isProcessing}
         />
       ) : (
-        <div className="w-full max-w-5xl text-center">
-          <h3 className="text-xl font-bold mb-4">Archivo: {file.name}</h3>
+        <div style={{ width: '100%', maxWidth: '1024px', textAlign: 'center', margin: '0 auto' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Archivo: {file.name}</h3>
           
           {isGenerating ? (
-            <div className="py-12 bg-gray-50 rounded-xl border border-gray-100">
-              <div className="text-blue-600 font-semibold mb-2">Generando vista previa... {progress}%</div>
-              <div className="w-64 h-2 bg-gray-200 rounded-full mx-auto overflow-hidden">
-                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+            <div style={{ padding: '3rem 0', backgroundColor: '#f9fafb', borderRadius: '0.75rem', border: '1px solid #f3f4f6' }}>
+              <div style={{ color: '#2563eb', fontWeight: 600, marginBottom: '0.5rem' }}>Generando vista previa... {progress}%</div>
+              <div style={{ width: '16rem', height: '0.5rem', backgroundColor: '#e5e7eb', borderRadius: '9999px', margin: '0 auto', overflow: 'hidden' }}>
+                <div style={{ height: '100%', backgroundColor: '#3b82f6', transition: 'all 0.3s', width: `${progress}%` }}></div>
               </div>
             </div>
           ) : (
             <>
-              <p className="text-gray-500 mb-6">Haz clic en el icono de rotar en cada página.</p>
+              <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>Haz clic en el icono de rotar en cada página.</p>
               
               <PDFVisualizer 
                 thumbnails={thumbnails}

@@ -86,7 +86,7 @@ export function PDFVisualizer({ thumbnails, mode, onUpdate }: PDFVisualizerProps
   if (items.length === 0) return null;
 
   return (
-    <div className="w-full bg-gray-50/50 p-6 rounded-xl border border-gray-100 min-h-[400px]">
+    <div style={{ width: '100%', backgroundColor: '#f9fafb', padding: '1.5rem', borderRadius: '0.75rem', border: '1px solid #f3f4f6', minHeight: '400px' }}>
       <DndContext 
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -96,7 +96,7 @@ export function PDFVisualizer({ thumbnails, mode, onUpdate }: PDFVisualizerProps
           items={items.map(i => i.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="flex flex-wrap gap-6 justify-center">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center' }}>
             {items.map((page, index) => (
               <PageThumbnail 
                 key={page.id}
