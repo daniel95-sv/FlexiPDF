@@ -1,76 +1,43 @@
 import { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import { Uploader } from '../components/Uploader/Uploader';
+import { usePDFThumbnails } from '../hooks/usePDFThumbnails';
+import { PDFVisualizer } from '../components/PDFVisualizer/PDFVisualizer';
 
 export function ExtractPages() {
   const [file, setFile] = useState<File | null>(null);
-  const [pageCount, setPageCount] = useState<number>(0);
-  const [pagesInput, setPagesInput] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { thumbnails, setThumbnails, isGenerating, progress } = usePDFThumbnails(file);
 
   const handleFileSelect = async (files: File[]) => {
     if (files.length === 0) return;
     setError(null);
-    setIsProcessing(true);
-    const selectedFile = files[0];
-    
-    try {
-      const arrayBuffer = await selectedFile.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
-      setPageCount(pdfDoc.getPageCount());
-      setFile(selectedFile);
-    } catch (err) {
-      console.error(err);
-      setError("Error al cargar el archivo PDF. Asegúrate de que no esté protegido con contraseña.");
-    } finally {
-      setIsProcessing(false);
-    }
+    setFile(files[0]);
   };
 
   const executeExtraction = async () => {
-    if (!file || !pagesInput) return;
+    if (!file || thumbnails.length === 0) return;
+    
+    const pagesToExtract = thumbnails.filter(t => t.selected).map(t => t.originalIndex);
+    
+    if (pagesToExtract.length === 0) {
+      setError("Por favor selecciona al menos una página para extraer.");
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
     
     try {
-      // Parse pages (e.g. "1, 3, 5-7")
-      const pagesToExtract = new Set<number>();
-      const parts = pagesInput.split(',').map(s => s.trim());
-      
-      for (const part of parts) {
-        if (part.includes('-')) {
-          const [startStr, endStr] = part.split('-');
-          const start = parseInt(startStr);
-          const end = parseInt(endStr);
-          if (!isNaN(start) && !isNaN(end) && start <= end) {
-            for (let i = start; i <= end; i++) {
-              pagesToExtract.add(i);
-            }
-          }
-        } else {
-          const pageNum = parseInt(part);
-          if (!isNaN(pageNum)) {
-            pagesToExtract.add(pageNum);
-          }
-        }
-      }
-
       const arrayBuffer = await file.arrayBuffer();
       const sourcePdf = await PDFDocument.load(arrayBuffer);
       const targetPdf = await PDFDocument.create();
       
-      const sortedToExtract = Array.from(pagesToExtract)
-        .filter(p => p >= 1 && p <= pageCount)
-        .sort((a, b) => a - b); // Ascending
+      const sortedToExtract = pagesToExtract.sort((a, b) => a - b); // Ascending
 
-      if (sortedToExtract.length === 0) {
-        throw new Error("No has seleccionado ninguna página válida para extraer.");
-      }
-
-      // pdf-lib uses 0-based indices
-      const indicesToCopy = sortedToExtract.map(p => p - 1);
-      const copiedPages = await targetPdf.copyPages(sourcePdf, indicesToCopy);
+      const copiedPages = await targetPdf.copyPages(sourcePdf, sortedToExtract);
 
       for (const page of copiedPages) {
         targetPdf.addPage(page);
@@ -87,9 +54,7 @@ export function ExtractPages() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       
-      // Reset
       setFile(null);
-      setPagesInput('');
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Error al extraer las páginas.");
@@ -103,7 +68,7 @@ export function ExtractPages() {
       <div style={{ textAlign: 'center', marginBottom: '3rem', maxWidth: '800px' }}>
         <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-1px' }}>Extract Pages</h1>
         <p style={{ fontSize: '1.25rem', color: 'var(--text-light)', lineHeight: 1.6 }}>
-          Extract pages from your PDF document into a new PDF.
+          Extract pages from your PDF document into a new PDF visually.
         </p>
       </div>
 
@@ -122,36 +87,44 @@ export function ExtractPages() {
           isProcessing={isProcessing}
         />
       ) : (
-        <div style={{ background: 'white', padding: '2rem', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,0,0,0.05)', width: '100%', maxWidth: '600px', textAlign: 'center' }}>
-          <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem' }}>Archivo: <strong>{file.name}</strong> ({pageCount} páginas)</h3>
+        <div className="w-full max-w-5xl text-center">
+          <h3 className="text-xl font-bold mb-4">Archivo: {file.name}</h3>
           
-          <div style={{ marginBottom: '2rem', textAlign: 'left' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>Páginas a extraer (ej. 1, 3, 5-8):</label>
-            <input 
-              type="text" 
-              value={pagesInput}
-              onChange={(e) => setPagesInput(e.target.value)}
-              placeholder="1, 2, 4-6..."
-              style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '2px solid #eee', fontSize: '1.1rem' }}
-            />
-          </div>
+          {isGenerating ? (
+            <div className="py-12 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="text-blue-600 font-semibold mb-2">Generando vista previa... {progress}%</div>
+              <div className="w-64 h-2 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-500 mb-6">Haz clic en las páginas que deseas <strong>extraer</strong>.</p>
+              
+              <PDFVisualizer 
+                thumbnails={thumbnails}
+                mode="extract"
+                onUpdate={setThumbnails}
+              />
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <button 
-              onClick={() => setFile(null)}
-              style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', background: '#f3f4f6', color: '#4b5563', cursor: 'pointer', fontWeight: 600 }}
-            >
-              Cancelar
-            </button>
-            <button 
-              onClick={executeExtraction}
-              disabled={isProcessing || !pagesInput.trim()}
-              className="btn btn-primary"
-              style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', cursor: pagesInput.trim() ? 'pointer' : 'not-allowed', fontWeight: 600 }}
-            >
-              {isProcessing ? 'Procesando...' : 'Extraer Páginas'}
-            </button>
-          </div>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+                <button 
+                  onClick={() => setFile(null)}
+                  style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', background: '#f3f4f6', color: '#4b5563', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={executeExtraction}
+                  disabled={isProcessing}
+                  className="btn btn-primary"
+                  style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                >
+                  {isProcessing ? 'Procesando...' : `Extraer ${thumbnails.filter(t => t.selected).length} páginas`}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

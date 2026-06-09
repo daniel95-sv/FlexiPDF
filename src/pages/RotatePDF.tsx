@@ -1,65 +1,55 @@
 import { useState } from 'react';
 import { PDFDocument, degrees } from 'pdf-lib';
-import JSZip from 'jszip';
 import { Uploader } from '../components/Uploader/Uploader';
+import { usePDFThumbnails } from '../hooks/usePDFThumbnails';
+import { PDFVisualizer } from '../components/PDFVisualizer/PDFVisualizer';
 
 export function RotatePDF() {
+  const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleProcess = async (files: File[]) => {
+  const { thumbnails, setThumbnails, isGenerating, progress } = usePDFThumbnails(file);
+
+  const handleFileSelect = async (files: File[]) => {
+    if (files.length === 0) return;
+    setError(null);
+    setFile(files[0]);
+  };
+
+  const executeRotation = async () => {
+    if (!file || thumbnails.length === 0) return;
     setIsProcessing(true);
     setError(null);
+    
     try {
-      if (files.length === 1) {
-        // Single file processing
-        const file = files[0];
-        const arrayBuffer = await file.arrayBuffer();
-        const pdfDoc = await PDFDocument.load(arrayBuffer);
-        
-        const pages = pdfDoc.getPages();
-        pages.forEach((page) => {
-          const currentRotation = page.getRotation().angle;
-          page.setRotation(degrees(currentRotation + 90));
-        });
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const pages = pdfDoc.getPages();
 
-        const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${file.name.replace('.pdf', '')}_rotated.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        // Multiple files processing -> ZIP
-        const zip = new JSZip();
-        for (const file of files) {
-          const arrayBuffer = await file.arrayBuffer();
-          const pdfDoc = await PDFDocument.load(arrayBuffer);
-          const pages = pdfDoc.getPages();
-          pages.forEach((page) => {
-            const currentRotation = page.getRotation().angle;
-            page.setRotation(degrees(currentRotation + 90));
-          });
-          const pdfBytes = await pdfDoc.save();
-          zip.file(`${file.name.replace('.pdf', '')}_rotated.pdf`, pdfBytes);
+      thumbnails.forEach((t) => {
+        if (t.rotation !== 0) {
+          const page = pages[t.originalIndex];
+          const currentRotation = page.getRotation().angle;
+          page.setRotation(degrees(currentRotation + t.rotation));
         }
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        const url = URL.createObjectURL(zipBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `rotated_pdfs.zip`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }
-    } catch (err) {
-      console.error('Error rotating PDFs:', err);
-      setError('Failed to rotate PDF. Please make sure the files are valid PDF documents.');
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes as any], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rotated_${file.name}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setFile(null);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Error al rotar las páginas.');
     } finally {
       setIsProcessing(false);
     }
@@ -70,8 +60,7 @@ export function RotatePDF() {
       <div style={{ textAlign: 'center', marginBottom: '3rem', maxWidth: '800px' }}>
         <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-1px' }}>Rotate PDF</h1>
         <p style={{ fontSize: '1.25rem', color: 'var(--text-light)', lineHeight: 1.6 }}>
-          Rotate your PDFs by 90 degrees. Process multiple files at once.
-          Processed locally for maximum privacy and speed.
+          Rotate specific pages of your PDF visually.
         </p>
       </div>
 
@@ -81,13 +70,55 @@ export function RotatePDF() {
         </div>
       )}
 
-      <Uploader 
-        onProcess={handleProcess} 
-        title="Select PDF files" 
-        multiple={true} 
-        actionText="Rotate PDFs (90°)"
-        isProcessing={isProcessing}
-      />
+      {!file ? (
+        <Uploader 
+          onProcess={handleFileSelect} 
+          title="Select PDF file" 
+          multiple={false} 
+          actionText="Select"
+          isProcessing={isProcessing}
+        />
+      ) : (
+        <div className="w-full max-w-5xl text-center">
+          <h3 className="text-xl font-bold mb-4">Archivo: {file.name}</h3>
+          
+          {isGenerating ? (
+            <div className="py-12 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="text-blue-600 font-semibold mb-2">Generando vista previa... {progress}%</div>
+              <div className="w-64 h-2 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-500 mb-6">Haz clic en el icono de rotar en cada página.</p>
+              
+              <PDFVisualizer 
+                thumbnails={thumbnails}
+                mode="rotate"
+                onUpdate={setThumbnails}
+              />
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+                <button 
+                  onClick={() => setFile(null)}
+                  style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', background: '#f3f4f6', color: '#4b5563', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={executeRotation}
+                  disabled={isProcessing}
+                  className="btn btn-primary"
+                  style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                >
+                  {isProcessing ? 'Procesando...' : 'Aplicar Rotación'}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

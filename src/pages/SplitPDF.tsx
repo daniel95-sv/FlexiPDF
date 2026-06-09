@@ -2,14 +2,24 @@ import { useState } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import JSZip from 'jszip';
 import { Uploader } from '../components/Uploader/Uploader';
+import { usePDFThumbnails } from '../hooks/usePDFThumbnails';
+import { PDFVisualizer } from '../components/PDFVisualizer/PDFVisualizer';
 
 export function SplitPDF() {
+  const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { thumbnails, setThumbnails, isGenerating, progress } = usePDFThumbnails(file);
+
   const handleProcess = async (files: File[]) => {
     if (files.length === 0) return;
-    const file = files[0]; // Split handles one file at a time
+    setError(null);
+    setFile(files[0]);
+  };
+
+  const executeSplit = async () => {
+    if (!file || thumbnails.length === 0) return;
     
     setIsProcessing(true);
     setError(null);
@@ -38,9 +48,11 @@ export function SplitPDF() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (err) {
+      
+      setFile(null);
+    } catch (err: any) {
       console.error('Error splitting PDF:', err);
-      setError('Failed to split PDF. Please make sure the file is a valid PDF document and not password protected.');
+      setError(err.message || 'Failed to split PDF. Please make sure the file is a valid PDF document.');
     } finally {
       setIsProcessing(false);
     }
@@ -51,8 +63,7 @@ export function SplitPDF() {
       <div style={{ textAlign: 'center', marginBottom: '3rem', maxWidth: '800px' }}>
         <h1 style={{ fontSize: '3rem', fontWeight: 800, marginBottom: '1rem', letterSpacing: '-1px' }}>Split PDF</h1>
         <p style={{ fontSize: '1.25rem', color: 'var(--text-light)', lineHeight: 1.6 }}>
-          Separate every page of a PDF file into independent PDF files. 
-          Processed locally for maximum privacy and speed.
+          Separate every page of a PDF file into independent PDF files visually.
         </p>
       </div>
 
@@ -62,13 +73,55 @@ export function SplitPDF() {
         </div>
       )}
 
-      <Uploader 
-        onProcess={handleProcess} 
-        title="Select PDF file" 
-        multiple={false} 
-        actionText="Split PDF"
-        isProcessing={isProcessing}
-      />
+      {!file ? (
+        <Uploader 
+          onProcess={handleProcess} 
+          title="Select PDF file" 
+          multiple={false} 
+          actionText="Select"
+          isProcessing={isProcessing}
+        />
+      ) : (
+        <div className="w-full max-w-5xl text-center">
+          <h3 className="text-xl font-bold mb-4">Archivo: {file.name}</h3>
+          
+          {isGenerating ? (
+            <div className="py-12 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="text-blue-600 font-semibold mb-2">Generando vista previa... {progress}%</div>
+              <div className="w-64 h-2 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${progress}%` }}></div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <p className="text-gray-500 mb-6">Tu documento se dividirá en {thumbnails.length} archivos individuales.</p>
+              
+              <PDFVisualizer 
+                thumbnails={thumbnails}
+                mode="extract" // Visual indicator
+                onUpdate={setThumbnails}
+              />
+
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+                <button 
+                  onClick={() => setFile(null)}
+                  style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', background: '#f3f4f6', color: '#4b5563', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={executeSplit}
+                  disabled={isProcessing}
+                  className="btn btn-primary"
+                  style={{ padding: '1rem 2rem', borderRadius: '8px', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', fontWeight: 600 }}
+                >
+                  {isProcessing ? 'Procesando...' : `Dividir en ${thumbnails.length} PDFs`}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
