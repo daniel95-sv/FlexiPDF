@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 import { Uploader } from '../components/Uploader/Uploader';
 
 // Setup PDF.js worker via CDN to ensure compatibility across Vite/Cloudflare
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export function PDFtoJPG() {
   const [isProcessing, setIsProcessing] = useState(false);

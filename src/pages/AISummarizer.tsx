@@ -4,7 +4,7 @@ import { pipeline, env } from '@xenova/transformers';
 import { Uploader } from '../components/Uploader/Uploader';
 
 // Use same CDN worker logic for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 // Disable local models to fetch from HuggingFace hub
 env.allowLocalModels = false;

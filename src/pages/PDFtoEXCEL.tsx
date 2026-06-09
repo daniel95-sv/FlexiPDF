@@ -4,7 +4,7 @@ import * as XLSX from 'xlsx';
 import { Uploader } from '../components/Uploader/Uploader';
 
 // Use same CDN worker logic for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
 
 export function PDFtoEXCEL() {
   const [isProcessing, setIsProcessing] = useState(false);
