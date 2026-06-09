@@ -23,7 +23,7 @@ export function Home() {
     {
       title: "OPTIMIZE PDF",
       tools: [
-        { to: "/compress_pdf", icon: <FileArchive size={32} strokeWidth={1.5} />, title: "Compress PDF", description: "Reduce file size while optimizing quality." },
+        { to: "/compress_pdf", icon: <FileArchive size={32} strokeWidth={1.5} />, title: "Clean & Optimize PDF", description: "Clean internal metadata and restructure PDF objects." },
         { to: "/repair_pdf", icon: <Wrench size={32} strokeWidth={1.5} />, title: "Repair PDF", description: "Repair a damaged PDF and recover data." },
         { to: "/ocr_pdf", icon: <ScanText size={32} strokeWidth={1.5} />, title: "OCR PDF", description: "Convert scanned PDFs to searchable PDFs." },
       ]

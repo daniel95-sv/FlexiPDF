@@ -14,7 +14,7 @@ FlexiPDF es una poderosa plataforma web que incluye más de 30 herramientas de m
 
 ### 🛠️ Manipulación Avanzada de PDFs
 - **Merge & Split:** Une y divide documentos instantáneamente sin límites de tamaño de subida.
-- **Compress PDF:** Reduce drásticamente el peso de tus PDFs usando reestructuración de Object Streams.
+- **Clean & Optimize PDF:** Limpia metadatos y reestructura objetos para una leve optimización del peso.
 - **Rotate, Extract & Remove:** Gira hojas, extrae páginas específicas o elimina contenido confidencial.
 - **Organize & Edit:** Reordena las hojas, añade firmas dibujadas interactivamente y crea o llena formularios.
 - **Watermark & Page Numbers:** Estampa marcas de agua personalizadas y añade numeración dinámica a tus documentos.

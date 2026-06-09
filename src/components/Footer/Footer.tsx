@@ -20,7 +20,7 @@ export function Footer() {
           <ul className={styles.list}>
             <li><Link to="/merge_pdf" className={styles.link}>Merge PDF</Link></li>
             <li><Link to="/split_pdf" className={styles.link}>Split PDF</Link></li>
-            <li><Link to="/compress_pdf" className={styles.link}>Compress PDF</Link></li>
+            <li><Link to="/compress_pdf" className={styles.link}>Clean & Optimize PDF</Link></li>
             <li><Link to="/rotate_pdf" className={styles.link}>Rotate PDF</Link></li>
           </ul>
         </div>

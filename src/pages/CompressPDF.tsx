@@ -65,9 +65,9 @@ export function CompressPDF() {
 
   return (
     <ToolPageTemplate 
-      title="Compress PDF"
-      description="Reduce file size while optimizing for maximal PDF quality. (Client-side structural compression)."
-      actionText="Compress PDF"
+      title="Clean & Optimize PDF"
+      description="Remove internal metadata and restructure PDF objects to clean and optimize file structure without affecting document content."
+      actionText="Clean & Optimize PDF"
       multiple={true}
       isProcessing={isProcessing}
       error={error}
