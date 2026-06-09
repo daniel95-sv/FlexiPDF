@@ -70,9 +70,9 @@ function App() {
           <Route path="/repair_pdf" element={<RepairPDF />} />
           <Route path="/ocr_pdf" element={<OCRPDF />} />
           <Route path="/jpg_to_pdf" element={<JPGtoPDF />} />
-          <Route path="/word-to-pdf" element={<WORDtoPDF />} />
-          <Route path="/powerpoint-to-pdf" element={<POWERPOINTtoPDF />} />
-          <Route path="/excel-to-pdf" element={<EXCELtoPDF />} />
+          <Route path="/word_to_pdf" element={<WORDtoPDF />} />
+          <Route path="/powerpoint_to_pdf" element={<POWERPOINTtoPDF />} />
+          <Route path="/excel_to_pdf" element={<EXCELtoPDF />} />
           <Route path="/html_to_pdf" element={<HTMLtoPDF />} />
           <Route path="/pdf_to_jpg" element={<PDFtoJPG />} />
           <Route path="/pdf_to_word" element={<PDFtoWORD />} />
